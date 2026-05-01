@@ -1,6 +1,6 @@
 {
   "name": "@deliveriq/mcp",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "MCP server for DeliverIQ email verification API — 12 tools for AI agents",
   "type": "module",
   "main": "dist/index.js",
@@ -43,7 +43,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@deliveriq/sdk": "^1.1.1",
+    "@deliveriq/sdk": "^2.0.0",
     "@modelcontextprotocol/sdk": "^1.27.0",
     "zod": "^3.23.8"
   },

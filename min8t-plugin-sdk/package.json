@@ -1,6 +1,6 @@
 {
   "name": "@min8t.com/plugin-sdk",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "MiN8T Email Editor SDK - Embed a full-featured email editor in your web application",
   "main": "dist/min8t.js",
   "types": "dist/index.d.ts",

@@ -9,7 +9,7 @@ import { Account } from './resources/account';
 import { History } from './resources/history';
 import { Dmarc } from './resources/dmarc';
 
-const DEFAULT_BASE_URL = 'https://api.deliveriq.com/v1';
+const DEFAULT_BASE_URL = 'https://api.min8t.com/deliverability/v1';
 const DEFAULT_TIMEOUT = 30_000;
 const DEFAULT_MAX_RETRIES = 3;
 

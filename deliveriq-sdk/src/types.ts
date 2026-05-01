@@ -3,7 +3,7 @@
 export interface DeliverIQConfig {
   /** API key (format: lc_{prefix}_{secret}) */
   apiKey: string;
-  /** Base URL override (default: https://api.deliveriq.com/v1) */
+  /** Base URL override (default: https://api.min8t.com/deliverability/v1) */
   baseUrl?: string;
   /** Request timeout in ms (default: 30000) */
   timeout?: number;

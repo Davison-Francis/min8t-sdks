@@ -1,9 +1,9 @@
 # @deliveriq/mcp
 
 Official MCP (Model Context Protocol) server for the
-[DeliverIQ](https://deliveriq.com) email verification API. Provides
-**12 tools** for AI agents in Claude Desktop, Claude Code, Cursor, and any
-other MCP-compatible client.
+[DeliverIQ](https://min8t.com/deliveriq) email verification API by MiN8T.
+Provides **12 tools** for AI agents in Claude Desktop, Claude Code, Cursor,
+and any other MCP-compatible client.
 
 [![npm](https://img.shields.io/npm/v/@deliveriq/mcp.svg)](https://www.npmjs.com/package/@deliveriq/mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
@@ -61,16 +61,16 @@ Add to `.cursor/mcp.json`:
 
 ### Get an API key
 
-Sign up at [deliveriq.com](https://deliveriq.com). The free tier includes
-enough credits for the demo flow + ongoing low-volume use. Keys are issued
-in the format `lc_prefix_secret`.
+Sign up at [min8t.com/deliveriq](https://min8t.com/deliveriq) and grab a
+key from your dashboard. The free tier covers the demo flow plus ongoing
+low-volume use. Keys are issued in the format `lc_prefix_secret`.
 
 ## Environment Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `DELIVERIQ_API_KEY` | Yes | API key (format: `lc_prefix_secret`) |
-| `DELIVERIQ_BASE_URL` | No | Override API URL (default: `https://api.deliveriq.com/v1`) |
+| `DELIVERIQ_BASE_URL` | No | Override API URL (default: `https://api.min8t.com/deliverability/v1`) |
 
 ## Tools (12)
 

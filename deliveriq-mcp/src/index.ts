@@ -22,7 +22,7 @@ async function main(): Promise<void> {
     console.error('ERROR: DELIVERIQ_API_KEY environment variable is required.');
     console.error('Set it with: export DELIVERIQ_API_KEY=lc_your_key_here');
     console.error('');
-    console.error('Get your API key at: https://app.deliveriq.com/settings/api-keys');
+    console.error('Get your API key at: https://min8t.com/deliveriq');
     process.exit(1);
   }
 

@@ -243,7 +243,7 @@ try {
 ```typescript
 const client = new DeliverIQ({
   apiKey: 'lc_your_api_key',
-  baseUrl: 'https://api.deliveriq.com/v1', // default
+  baseUrl: 'https://api.min8t.com/deliverability/v1', // default
   timeout: 30_000,                          // 30s default
   maxRetries: 3,                            // retries on 429/5xx
 });
