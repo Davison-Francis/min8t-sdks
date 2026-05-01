@@ -1,0 +1,38 @@
+{
+  "name": "@min8t/plugin-vue-example",
+  "version": "1.0.0",
+  "description": "Vue 3 integration example for min8t Email Editor Plugin SDK",
+  "type": "module",
+  "author": "min8t Team",
+  "license": "MIT",
+  "keywords": [
+    "min8t",
+    "email-editor",
+    "vue3",
+    "composition-api",
+    "typescript",
+    "plugin"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview",
+    "type-check": "vue-tsc --noEmit",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
+  },
+  "dependencies": {
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/tsconfig": "^0.7.0",
+    "typescript": "~5.7.2",
+    "vite": "^6.0.5",
+    "vue-tsc": "^2.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

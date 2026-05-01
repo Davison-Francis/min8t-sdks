@@ -1,0 +1,44 @@
+<!--
+  min8t Email Editor - Angular Template
+
+  This template displays:
+  - Loading state during initialization
+  - Error state if initialization fails
+  - Editor container for the plugin iframe
+  - Optional loading spinner and error messages
+
+  **Usage:**
+  The component automatically loads the plugin into #editorContainer
+  after ngAfterViewInit is called.
+-->
+
+<div class="min8t-editor-wrapper">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="min8t-loading">
+    <div class="spinner"></div>
+    <p>Loading email editor...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="initializationError" class="min8t-error">
+    <div class="error-icon">⚠️</div>
+    <h3>{{ initializationError.error }}</h3>
+    <p class="error-details">{{ initializationError.details }}</p>
+    <p class="error-type">Error Type: {{ initializationError.errorType }}</p>
+    <button
+      *ngIf="initializationError.isRecoverable"
+      (click)="ngAfterViewInit()"
+      class="retry-button">
+      Retry
+    </button>
+  </div>
+
+  <!-- Editor Container -->
+  <div
+    #editorContainer
+    id="min8t-plugin"
+    class="min8t-editor-container"
+    [class.hidden]="isLoading || initializationError">
+    <!-- Plugin iframe will be inserted here by window.min8t.init() -->
+  </div>
+</div>

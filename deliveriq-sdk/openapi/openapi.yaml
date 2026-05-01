@@ -1,0 +1,1876 @@
+openapi: 3.0.3
+info:
+  title: DeliverIQ Email Verification API
+  description: |
+    DeliverIQ provides email verification, domain intelligence, email finder,
+    and ESP integration capabilities. Authenticate every request with the
+    `MiN8T-Api-Auth` header containing your API key.
+  version: 1.0.0
+  contact:
+    name: DeliverIQ API Support
+  license:
+    name: Proprietary
+
+servers:
+  - url: https://api.deliveriq.com/v1
+    description: Production
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: Verification
+    description: Single and batch email verification
+  - name: Domain Intelligence
+    description: Blacklist, infrastructure, spam-trap, and org-level checks
+  - name: Email Finder
+    description: Find professional email addresses
+  - name: ESP Integration
+    description: Sync and verify ESP provider lists
+  - name: Account
+    description: API keys, webhook secrets, and usage
+  - name: Tool History
+    description: Persist and retrieve tool results
+
+paths:
+  # ─────────────────────────────────────────────
+  # Verification
+  # ─────────────────────────────────────────────
+  /verify:
+    post:
+      operationId: verifySingle
+      summary: Single email verification
+      description: Verify a single email address. Costs 1 credit.
+      tags: [Verification]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SingleVerifyRequest'
+      responses:
+        '200':
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SingleVerifyResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/InsufficientCredits'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /verify/batch:
+    post:
+      operationId: verifyBatch
+      summary: Batch verify emails (JSON)
+      description: |
+        Submit up to 10,000 emails for batch verification.
+        Returns a job ID for polling.
+      tags: [Verification]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchVerifyRequest'
+      responses:
+        '202':
+          description: Job accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchVerifyAccepted'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/InsufficientCredits'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /verify/upload:
+    post:
+      operationId: verifyUpload
+      summary: Upload file for batch verification
+      description: |
+        Upload a CSV or TXT file (max 10 MB / 100,000 emails).
+        Returns a job ID for polling.
+      tags: [Verification]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UploadVerifyRequest'
+      responses:
+        '202':
+          description: Job accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadVerifyAccepted'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/InsufficientCredits'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /verify/batch/{jobId}:
+    get:
+      operationId: getJobStatus
+      summary: Get batch job status
+      tags: [Verification]
+      parameters:
+        - $ref: '#/components/parameters/JobId'
+      responses:
+        '200':
+          description: Job status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobStatusResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: cancelJob
+      summary: Cancel a batch job
+      tags: [Verification]
+      parameters:
+        - $ref: '#/components/parameters/JobId'
+      responses:
+        '200':
+          description: Job cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancelJobResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /verify/batch/{jobId}/download:
+    get:
+      operationId: downloadJobResults
+      summary: Download results as CSV
+      tags: [Verification]
+      parameters:
+        - $ref: '#/components/parameters/JobId'
+        - name: category
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/ReachabilityCategory'
+          description: Filter results by reachability category
+      responses:
+        '200':
+          description: CSV file
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          description: Results expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /verify/jobs:
+    get:
+      operationId: listJobs
+      summary: List verification jobs
+      tags: [Verification]
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/JobStatus'
+      responses:
+        '200':
+          description: Paginated job list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListJobsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  # ─────────────────────────────────────────────
+  # Domain Intelligence
+  # ─────────────────────────────────────────────
+  /tools/blacklist-check:
+    post:
+      operationId: blacklistCheck
+      summary: Check domain against 50 DNSBL zones
+      tags: [Domain Intelligence]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DomainRequest'
+      responses:
+        '200':
+          description: Blacklist result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlacklistCheckResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /tools/infrastructure-check:
+    post:
+      operationId: infrastructureCheck
+      summary: Check SPF, DKIM, DMARC, and MTA-STS
+      tags: [Domain Intelligence]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DomainRequest'
+      responses:
+        '200':
+          description: Infrastructure result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfrastructureCheckResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /tools/spam-trap-analysis:
+    post:
+      operationId: spamTrapAnalysis
+      summary: Analyse email across 13 spam-trap signals
+      tags: [Domain Intelligence]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailRequest'
+      responses:
+        '200':
+          description: Spam-trap analysis result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpamTrapAnalysisResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /tools/domain-intel:
+    post:
+      operationId: domainIntel
+      summary: Comprehensive domain intelligence report
+      tags: [Domain Intelligence]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DomainRequest'
+      responses:
+        '200':
+          description: Domain intelligence result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainIntelResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /tools/org-intel/{domain}:
+    get:
+      operationId: orgIntel
+      summary: Organisation intelligence (free)
+      tags: [Domain Intelligence]
+      parameters:
+        - name: domain
+          in: path
+          required: true
+          schema:
+            type: string
+            format: hostname
+            example: example.com
+      responses:
+        '200':
+          description: Org intelligence result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrgIntelResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /tools/enrich-domain:
+    post:
+      operationId: enrichDomain
+      summary: Trigger background domain enrichment (free)
+      tags: [Domain Intelligence]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DomainRequest'
+      responses:
+        '200':
+          description: Enrichment started
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message]
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Enrichment started
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  # ─────────────────────────────────────────────
+  # Email Finder
+  # ─────────────────────────────────────────────
+  /email-finder/find:
+    post:
+      operationId: findEmail
+      summary: Find a professional email address (2 credits)
+      tags: [Email Finder]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FindEmailRequest'
+      responses:
+        '200':
+          description: Email found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FindEmailResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/InsufficientCredits'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /email-finder/bulk:
+    post:
+      operationId: bulkFindEmails
+      summary: Bulk find emails (up to 50 contacts, 2 credits each)
+      tags: [Email Finder]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkFindRequest'
+      responses:
+        '202':
+          description: Bulk results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkFindResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/InsufficientCredits'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  # ─────────────────────────────────────────────
+  # ESP Integration
+  # ─────────────────────────────────────────────
+  /esp/providers:
+    get:
+      operationId: listProviders
+      summary: List connected ESP providers
+      tags: [ESP Integration]
+      responses:
+        '200':
+          description: Provider list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListProvidersResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /esp/{providerId}/lists:
+    get:
+      operationId: getProviderLists
+      summary: List audience lists for a provider
+      tags: [ESP Integration]
+      parameters:
+        - $ref: '#/components/parameters/ProviderId'
+      responses:
+        '200':
+          description: Audience lists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderListsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /esp/sync:
+    post:
+      operationId: syncAndVerify
+      summary: Sync and verify an ESP list (1 credit per email)
+      tags: [ESP Integration]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EspSyncRequest'
+      responses:
+        '202':
+          description: Sync job accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EspSyncAccepted'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/InsufficientCredits'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /esp/push-results:
+    post:
+      operationId: pushResults
+      summary: Push verification results back to ESP
+      tags: [ESP Integration]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PushResultsRequest'
+      responses:
+        '200':
+          description: Results pushed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PushResultsResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  # ─────────────────────────────────────────────
+  # Account
+  # ─────────────────────────────────────────────
+  /account/api-keys:
+    get:
+      operationId: listApiKeys
+      summary: List API keys
+      tags: [Account]
+      responses:
+        '200':
+          description: API key list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListApiKeysResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createApiKey
+      summary: Create a new API key
+      tags: [Account]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateApiKeyRequest'
+      responses:
+        '201':
+          description: Key created (full key shown only once)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateApiKeyResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /account/api-keys/{keyId}:
+    delete:
+      operationId: revokeApiKey
+      summary: Revoke an API key
+      tags: [Account]
+      parameters:
+        - name: keyId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Key revoked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /account/webhook-secret/rotate:
+    post:
+      operationId: rotateWebhookSecret
+      summary: Rotate webhook signing secret
+      tags: [Account]
+      responses:
+        '200':
+          description: New webhook secret (shown only once)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RotateWebhookSecretResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /account/usage:
+    get:
+      operationId: getUsage
+      summary: Get credit usage for current billing period
+      tags: [Account]
+      responses:
+        '200':
+          description: Usage data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ─────────────────────────────────────────────
+  # Tool History
+  # ─────────────────────────────────────────────
+  /tools/history:
+    post:
+      operationId: saveToolHistory
+      summary: Save a tool result
+      tags: [Tool History]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveToolHistoryRequest'
+      responses:
+        '200':
+          description: Entry saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaveToolHistoryResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /tools/history/{toolType}:
+    get:
+      operationId: getToolHistory
+      summary: Get history for a tool type (max 25 entries)
+      tags: [Tool History]
+      parameters:
+        - $ref: '#/components/parameters/ToolType'
+      responses:
+        '200':
+          description: History entries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetToolHistoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    delete:
+      operationId: clearToolHistory
+      summary: Clear history for a tool type
+      tags: [Tool History]
+      parameters:
+        - $ref: '#/components/parameters/ToolType'
+      responses:
+        '200':
+          description: History cleared
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+# ═══════════════════════════════════════════════
+# Components
+# ═══════════════════════════════════════════════
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: MiN8T-Api-Auth
+      description: API key prefixed with `lc_`
+
+  parameters:
+    JobId:
+      name: jobId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Batch verification job ID
+
+    ProviderId:
+      name: providerId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: ESP provider identifier
+
+    ToolType:
+      name: toolType
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Tool type identifier (e.g. blacklist-check, infrastructure-check)
+
+  responses:
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: VALIDATION_ERROR
+              message: Invalid email format
+
+    Unauthorized:
+      description: Missing or invalid API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: UNAUTHORIZED
+              message: Invalid API key
+
+    InsufficientCredits:
+      description: Not enough credits to complete the request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: INSUFFICIENT_CREDITS
+              message: You need at least 1 credit to perform this action
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: NOT_FOUND
+              message: Job not found
+
+    Conflict:
+      description: Resource is in a conflicting state
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: CONFLICT
+              message: Job is already in a terminal state
+
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        RateLimit:
+          schema:
+            type: string
+          description: Current rate-limit status
+        RateLimit-Policy:
+          schema:
+            type: string
+          description: Applicable rate-limit policy
+        Retry-After:
+          schema:
+            type: integer
+          description: Seconds until the rate limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: RATE_LIMIT_EXCEEDED
+              message: Too many requests, please retry after 12 seconds
+
+  schemas:
+    # ── Enums ──────────────────────────────────
+    ReachabilityCategory:
+      type: string
+      enum: [safe, risky, invalid, unknown]
+
+    JobStatus:
+      type: string
+      enum: [pending, processing, completed, failed, cancelled]
+
+    Confidence:
+      type: string
+      enum: [high, medium, low]
+
+    # ── Shared ─────────────────────────────────
+    ErrorResponse:
+      type: object
+      required: [success, error]
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: Invalid email format
+            details:
+              description: Optional structured details about the error
+
+    SuccessResponse:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+          example: true
+
+    Pagination:
+      type: object
+      required: [page, limit, total, pages]
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 42
+        pages:
+          type: integer
+          example: 3
+
+    DomainRequest:
+      type: object
+      required: [domain]
+      properties:
+        domain:
+          type: string
+          format: hostname
+          example: example.com
+
+    EmailRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+
+    # ── Verification ───────────────────────────
+    VerifyOptions:
+      type: object
+      properties:
+        skipSmtp:
+          type: boolean
+          default: false
+        checkGravatar:
+          type: boolean
+          default: false
+        checkHibp:
+          type: boolean
+          default: false
+        includeIntelligence:
+          type: boolean
+          default: false
+
+    SingleVerifyRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        options:
+          $ref: '#/components/schemas/VerifyOptions'
+
+    SyntaxResult:
+      type: object
+      required: [valid, localPart, domain]
+      properties:
+        valid:
+          type: boolean
+        localPart:
+          type: string
+          example: user
+        domain:
+          type: string
+          example: example.com
+
+    MxResult:
+      type: object
+      required: [valid, records]
+      properties:
+        valid:
+          type: boolean
+        records:
+          type: array
+          items:
+            type: string
+          example: [mx1.example.com, mx2.example.com]
+
+    SmtpResult:
+      type: object
+      required: [canConnect, isDeliverable, isCatchAll]
+      properties:
+        canConnect:
+          type: boolean
+        isDeliverable:
+          type: boolean
+        isCatchAll:
+          type: boolean
+
+    MiscResult:
+      type: object
+      required: [isDisposable, isRoleBased, isFreeProvider]
+      properties:
+        isDisposable:
+          type: boolean
+        isRoleBased:
+          type: boolean
+        isFreeProvider:
+          type: boolean
+
+    IntelligenceResult:
+      type: object
+      required: [spamTrapScore, domainAge]
+      properties:
+        spamTrapScore:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        domainAge:
+          type: string
+          description: Human-readable domain age
+          example: 12 years
+
+    VerificationResult:
+      type: object
+      required:
+        - email
+        - reachability
+        - score
+        - syntax
+        - mx
+        - smtp
+        - misc
+        - verifiedAt
+        - durationMs
+      properties:
+        email:
+          type: string
+          format: email
+        reachability:
+          $ref: '#/components/schemas/ReachabilityCategory'
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        syntax:
+          $ref: '#/components/schemas/SyntaxResult'
+        mx:
+          $ref: '#/components/schemas/MxResult'
+        smtp:
+          $ref: '#/components/schemas/SmtpResult'
+        misc:
+          $ref: '#/components/schemas/MiscResult'
+        intelligence:
+          $ref: '#/components/schemas/IntelligenceResult'
+        verifiedAt:
+          type: string
+          format: date-time
+        durationMs:
+          type: integer
+          description: Verification duration in milliseconds
+
+    SingleVerifyResponse:
+      type: object
+      required: [success, result, creditsUsed]
+      properties:
+        success:
+          type: boolean
+          example: true
+        result:
+          $ref: '#/components/schemas/VerificationResult'
+        creditsUsed:
+          type: integer
+          example: 1
+
+    BatchVerifyOptions:
+      type: object
+      properties:
+        skipSmtp:
+          type: boolean
+          default: false
+        checkGravatar:
+          type: boolean
+          default: false
+        checkHibp:
+          type: boolean
+          default: false
+        skipIntelligence:
+          type: boolean
+          default: false
+
+    BatchVerifyRequest:
+      type: object
+      required: [emails]
+      properties:
+        emails:
+          type: array
+          items:
+            type: string
+            format: email
+          minItems: 1
+          maxItems: 10000
+        options:
+          $ref: '#/components/schemas/BatchVerifyOptions'
+        callbackUrl:
+          type: string
+          format: uri
+          description: URL to POST results when the job completes
+
+    BatchVerifyAccepted:
+      type: object
+      required: [success, jobId, status, statusUrl, emailCount]
+      properties:
+        success:
+          type: boolean
+          example: true
+        jobId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          example: processing
+        statusUrl:
+          type: string
+          format: uri
+        emailCount:
+          type: integer
+
+    UploadVerifyRequest:
+      type: object
+      required: [file]
+      properties:
+        file:
+          type: string
+          format: binary
+          description: CSV or TXT file (max 10 MB, max 100,000 emails)
+        skipSmtp:
+          type: boolean
+        checkGravatar:
+          type: boolean
+        checkHibp:
+          type: boolean
+        skipIntelligence:
+          type: boolean
+        callbackUrl:
+          type: string
+          format: uri
+
+    ParseInfo:
+      type: object
+      required: [totalEmails, validEmails, invalidEmails, duplicatesRemoved]
+      properties:
+        totalEmails:
+          type: integer
+        validEmails:
+          type: integer
+        invalidEmails:
+          type: integer
+        duplicatesRemoved:
+          type: integer
+
+    UploadVerifyAccepted:
+      type: object
+      required: [success, jobId, status, parseInfo]
+      properties:
+        success:
+          type: boolean
+          example: true
+        jobId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          example: processing
+        parseInfo:
+          $ref: '#/components/schemas/ParseInfo'
+
+    JobProgress:
+      type: object
+      required: [percentage, processed, total]
+      properties:
+        percentage:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+        processed:
+          type: integer
+        total:
+          type: integer
+
+    JobSummary:
+      type: object
+      required: [total, safe, risky, invalid, unknown]
+      properties:
+        total:
+          type: integer
+        safe:
+          type: integer
+        risky:
+          type: integer
+        invalid:
+          type: integer
+        unknown:
+          type: integer
+
+    JobStatusResponse:
+      type: object
+      required: [success, jobId, status]
+      properties:
+        success:
+          type: boolean
+          example: true
+        jobId:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/JobStatus'
+        progress:
+          $ref: '#/components/schemas/JobProgress'
+        downloadUrl:
+          type: string
+          format: uri
+        summary:
+          $ref: '#/components/schemas/JobSummary'
+
+    CancelJobResponse:
+      type: object
+      required: [success, jobId, status]
+      properties:
+        success:
+          type: boolean
+          example: true
+        jobId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          example: cancelled
+
+    JobListItem:
+      type: object
+      required: [jobId, status, emailCount, createdAt]
+      properties:
+        jobId:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/JobStatus'
+        emailCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        summary:
+          $ref: '#/components/schemas/JobSummary'
+
+    ListJobsResponse:
+      type: object
+      required: [success, jobs, pagination]
+      properties:
+        success:
+          type: boolean
+          example: true
+        jobs:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobListItem'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    # ── Domain Intelligence ────────────────────
+    DnsblHit:
+      type: object
+      required: [zone, listed, returnCode]
+      properties:
+        zone:
+          type: string
+          example: zen.spamhaus.org
+        listed:
+          type: boolean
+        returnCode:
+          type: string
+          example: 127.0.0.2
+
+    BlacklistCheckResponse:
+      type: object
+      required: [success, domain, result]
+      properties:
+        success:
+          type: boolean
+          example: true
+        domain:
+          type: string
+        result:
+          type: object
+          required: [listed, hits, checkedZones]
+          properties:
+            listed:
+              type: boolean
+            hits:
+              type: array
+              items:
+                $ref: '#/components/schemas/DnsblHit'
+            checkedZones:
+              type: integer
+              example: 50
+
+    SpfRecord:
+      type: object
+      properties:
+        found:
+          type: boolean
+        record:
+          type: string
+        valid:
+          type: boolean
+        issues:
+          type: array
+          items:
+            type: string
+
+    DkimRecord:
+      type: object
+      properties:
+        found:
+          type: boolean
+        selector:
+          type: string
+        valid:
+          type: boolean
+
+    DmarcRecord:
+      type: object
+      properties:
+        found:
+          type: boolean
+        record:
+          type: string
+        policy:
+          type: string
+          enum: [none, quarantine, reject]
+
+    MtaStsRecord:
+      type: object
+      properties:
+        found:
+          type: boolean
+        mode:
+          type: string
+          enum: [enforce, testing, none]
+
+    InfrastructureResult:
+      type: object
+      required: [score, spf, dkim, dmarc, mtaSts]
+      properties:
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        spf:
+          $ref: '#/components/schemas/SpfRecord'
+        dkim:
+          $ref: '#/components/schemas/DkimRecord'
+        dmarc:
+          $ref: '#/components/schemas/DmarcRecord'
+        mtaSts:
+          $ref: '#/components/schemas/MtaStsRecord'
+
+    InfrastructureCheckResponse:
+      type: object
+      required: [success, domain, result]
+      properties:
+        success:
+          type: boolean
+          example: true
+        domain:
+          type: string
+        result:
+          type: object
+          required: [infrastructure]
+          properties:
+            infrastructure:
+              $ref: '#/components/schemas/InfrastructureResult'
+
+    SpamTrapSignals:
+      type: object
+      description: Detailed breakdown of the 13 spam-trap signals
+      additionalProperties: true
+
+    SpamTrapAnalysisResponse:
+      type: object
+      required: [success, result]
+      properties:
+        success:
+          type: boolean
+          example: true
+        result:
+          type: object
+          required: [riskLevel, trapType, score, signals]
+          properties:
+            riskLevel:
+              type: string
+              example: low
+            trapType:
+              type: string
+              example: none
+            score:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 1
+            signals:
+              $ref: '#/components/schemas/SpamTrapSignals'
+
+    DomainTrust:
+      type: object
+      required: [score, level]
+      properties:
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        level:
+          type: string
+          example: high
+
+    DomainIntelResponse:
+      type: object
+      required: [success, domain, result]
+      properties:
+        success:
+          type: boolean
+          example: true
+        domain:
+          type: string
+        result:
+          type: object
+          required: [mx, dnsbl, infrastructure, domainAge, domainTrust]
+          properties:
+            mx:
+              $ref: '#/components/schemas/MxResult'
+            dnsbl:
+              type: object
+              required: [listed, hits, checkedZones]
+              properties:
+                listed:
+                  type: boolean
+                hits:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DnsblHit'
+                checkedZones:
+                  type: integer
+            infrastructure:
+              $ref: '#/components/schemas/InfrastructureResult'
+            domainAge:
+              type: string
+              example: 12 years
+            domainTrust:
+              $ref: '#/components/schemas/DomainTrust'
+
+    OrgIntelResponse:
+      type: object
+      required: [success, domain, result]
+      properties:
+        success:
+          type: boolean
+          example: true
+        domain:
+          type: string
+        result:
+          type: object
+          required: [companyName, industry, employees, primaryPattern, socialProfiles]
+          properties:
+            companyName:
+              type: string
+              example: Example Corp
+            industry:
+              type: string
+              example: Technology
+            employees:
+              type: string
+              example: 51-200
+            primaryPattern:
+              type: string
+              description: Most common email pattern at this domain
+              example: '{first}.{last}'
+            socialProfiles:
+              type: object
+              properties:
+                linkedin:
+                  type: string
+                  format: uri
+                twitter:
+                  type: string
+                  format: uri
+
+    # ── Email Finder ───────────────────────────
+    FindEmailRequest:
+      type: object
+      required: [firstName, lastName]
+      properties:
+        firstName:
+          type: string
+          example: Jane
+        lastName:
+          type: string
+          example: Doe
+        domain:
+          type: string
+          format: hostname
+          example: example.com
+        companyName:
+          type: string
+          example: Example Corp
+
+    FindEmailResult:
+      type: object
+      required: [email, confidence, score, sources]
+      properties:
+        email:
+          type: string
+          format: email
+        confidence:
+          $ref: '#/components/schemas/Confidence'
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        sources:
+          type: integer
+          description: Number of sources that corroborate this email
+
+    FindEmailResponse:
+      type: object
+      required: [success, result]
+      properties:
+        success:
+          type: boolean
+          example: true
+        result:
+          $ref: '#/components/schemas/FindEmailResult'
+
+    BulkFindContact:
+      type: object
+      required: [firstName, lastName]
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        domain:
+          type: string
+          format: hostname
+        companyName:
+          type: string
+
+    BulkFindRequest:
+      type: object
+      required: [contacts]
+      properties:
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkFindContact'
+          minItems: 1
+          maxItems: 50
+
+    BulkFindResultItem:
+      type: object
+      required: [firstName, lastName]
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        confidence:
+          $ref: '#/components/schemas/Confidence'
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        sources:
+          type: integer
+        error:
+          type: string
+          description: Present when the lookup failed for this contact
+
+    BulkFindResponse:
+      type: object
+      required: [success, results]
+      properties:
+        success:
+          type: boolean
+          example: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkFindResultItem'
+
+    # ── ESP Integration ────────────────────────
+    EspProvider:
+      type: object
+      required: [id, name, connected, listCount]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        connected:
+          type: boolean
+        listCount:
+          type: integer
+
+    ListProvidersResponse:
+      type: object
+      required: [success, providers]
+      properties:
+        success:
+          type: boolean
+          example: true
+        providers:
+          type: array
+          items:
+            $ref: '#/components/schemas/EspProvider'
+
+    EspList:
+      type: object
+      required: [id, name, memberCount]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        memberCount:
+          type: integer
+
+    ProviderListsResponse:
+      type: object
+      required: [success, lists]
+      properties:
+        success:
+          type: boolean
+          example: true
+        lists:
+          type: array
+          items:
+            $ref: '#/components/schemas/EspList'
+
+    EspSyncOptions:
+      type: object
+      properties:
+        skipSmtp:
+          type: boolean
+          default: false
+
+    EspSyncRequest:
+      type: object
+      required: [providerId, listId]
+      properties:
+        providerId:
+          type: string
+        listId:
+          type: string
+        options:
+          $ref: '#/components/schemas/EspSyncOptions'
+        callbackUrl:
+          type: string
+          format: uri
+
+    EspSyncAccepted:
+      type: object
+      required: [success, jobId, status]
+      properties:
+        success:
+          type: boolean
+          example: true
+        jobId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          example: processing
+
+    PushResultsRequest:
+      type: object
+      required: [providerId, listId, jobId]
+      properties:
+        providerId:
+          type: string
+        listId:
+          type: string
+        jobId:
+          type: string
+          format: uuid
+
+    PushResultsResponse:
+      type: object
+      required: [success, pushed]
+      properties:
+        success:
+          type: boolean
+          example: true
+        pushed:
+          type: integer
+          description: Number of results pushed to the provider
+
+    # ── Account ────────────────────────────────
+    ApiKeyInfo:
+      type: object
+      required: [id, name, prefix, createdAt, lastUsedAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        prefix:
+          type: string
+          description: First characters of the key for identification
+          example: lc_abc1
+        createdAt:
+          type: string
+          format: date-time
+        lastUsedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    ListApiKeysResponse:
+      type: object
+      required: [success, keys]
+      properties:
+        success:
+          type: boolean
+          example: true
+        keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiKeyInfo'
+
+    CreateApiKeyRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          example: Production key
+
+    CreateApiKeyResponse:
+      type: object
+      required: [success, key, fullKey]
+      properties:
+        success:
+          type: boolean
+          example: true
+        key:
+          type: object
+          required: [id, name, prefix]
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            prefix:
+              type: string
+        fullKey:
+          type: string
+          description: Full API key, shown only at creation time
+          example: lc_abc123def456ghi789
+
+    RotateWebhookSecretResponse:
+      type: object
+      required: [success, webhookSecret, secret]
+      properties:
+        success:
+          type: boolean
+          example: true
+        webhookSecret:
+          type: object
+          required: [id, prefix, createdAt]
+          properties:
+            id:
+              type: string
+            prefix:
+              type: string
+              example: whsec_abc
+            createdAt:
+              type: string
+              format: date-time
+        secret:
+          type: string
+          description: Full webhook secret, shown only at rotation time
+          example: whsec_abc123def456ghi789
+
+    UsageBreakdown:
+      type: object
+      required: [single, batch, espSync]
+      properties:
+        single:
+          type: integer
+        batch:
+          type: integer
+        espSync:
+          type: integer
+
+    DailyUsage:
+      type: object
+      required: [date, count]
+      properties:
+        date:
+          type: string
+          format: date
+          example: '2026-03-01'
+        count:
+          type: integer
+
+    UsageResponse:
+      type: object
+      required:
+        - used
+        - limit
+        - remaining
+        - plan
+        - periodStart
+        - periodEnd
+        - breakdown
+        - dailyUsage
+      properties:
+        used:
+          type: integer
+        limit:
+          type: integer
+        remaining:
+          type: integer
+        plan:
+          type: string
+          example: professional
+        periodStart:
+          type: string
+          format: date-time
+        periodEnd:
+          type: string
+          format: date-time
+        breakdown:
+          $ref: '#/components/schemas/UsageBreakdown'
+        dailyUsage:
+          type: array
+          items:
+            $ref: '#/components/schemas/DailyUsage'
+
+    # ── Tool History ───────────────────────────
+    SaveToolHistoryRequest:
+      type: object
+      required: [toolType, input, result]
+      properties:
+        toolType:
+          type: string
+          example: blacklist-check
+        input:
+          type: string
+          example: example.com
+        result:
+          type: object
+          description: Arbitrary result payload
+          additionalProperties: true
+
+    ToolHistoryEntry:
+      type: object
+      required: [id, input, result, timestamp]
+      properties:
+        id:
+          type: string
+        input:
+          type: string
+        result:
+          type: object
+          additionalProperties: true
+        timestamp:
+          type: string
+          format: date-time
+
+    SaveToolHistoryResponse:
+      type: object
+      required: [success, entry]
+      properties:
+        success:
+          type: boolean
+          example: true
+        entry:
+          $ref: '#/components/schemas/ToolHistoryEntry'
+
+    GetToolHistoryResponse:
+      type: object
+      required: [success, entries]
+      properties:
+        success:
+          type: boolean
+          example: true
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/ToolHistoryEntry'
+          maxItems: 25

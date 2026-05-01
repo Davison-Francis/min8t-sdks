@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>min8t Email Editor - Vue 3 Example</title>
+
+    <!--
+      min8t Plugin SDK Script (REQUIRED)
+
+      This must be loaded BEFORE the Vue app initializes.
+
+      For production, use:
+      <script src="https://plugins.min8t.com/static/latest/min8t.js"></script>
+
+      For local development/testing, use the local build:
+    -->
+    <script src="../../dist/min8t.js"></script>
+
+    <!-- Optional: Verify SDK loaded -->
+    <script>
+      window.addEventListener('DOMContentLoaded', () => {
+        if (window.min8t) {
+          console.log('✅ min8t Plugin SDK loaded successfully')
+        } else {
+          console.error('❌ min8t Plugin SDK failed to load')
+        }
+      })
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

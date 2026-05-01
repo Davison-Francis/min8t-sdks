@@ -1,0 +1,50 @@
+{
+  "name": "min8t-angular-example",
+  "version": "1.0.0",
+  "description": "Angular integration example for min8t Email Editor Plugin SDK",
+  "author": "min8t Team",
+  "license": "MIT",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "build:prod": "ng build --configuration production",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "lint": "ng lint",
+    "serve": "ng serve --open"
+  },
+  "dependencies": {
+    "@angular/animations": "^17.3.0",
+    "@angular/common": "^17.3.0",
+    "@angular/compiler": "^17.3.0",
+    "@angular/core": "^17.3.0",
+    "@angular/forms": "^17.3.0",
+    "@angular/platform-browser": "^17.3.0",
+    "@angular/platform-browser-dynamic": "^17.3.0",
+    "@angular/router": "^17.3.0",
+    "rxjs": "^7.8.1",
+    "tslib": "^2.6.2",
+    "zone.js": "^0.14.4"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^17.3.0",
+    "@angular/cli": "^17.3.0",
+    "@angular/compiler-cli": "^17.3.0",
+    "@types/node": "^20.11.30",
+    "typescript": "~5.4.3"
+  },
+  "engines": {
+    "node": ">=18.19.0",
+    "npm": ">=10.0.0"
+  },
+  "keywords": [
+    "min8t",
+    "email",
+    "editor",
+    "angular",
+    "plugin",
+    "sdk",
+    "standalone-component"
+  ]
+}

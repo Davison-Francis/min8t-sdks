@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>min8t Plugin SDK - Vanilla JavaScript Integration</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <h1>min8t Email Editor</h1>
+      <p class="subtitle">Vanilla JavaScript Integration Example</p>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      <!-- Status Display -->
+      <div id="status" class="status hidden">
+        <span id="status-icon" class="status-icon"></span>
+        <span id="status-message" class="status-message"></span>
+      </div>
+
+      <!-- Controls Panel -->
+      <div class="controls-panel">
+        <h2>Plugin Controls</h2>
+
+        <!-- Initialization Section -->
+        <div class="control-section">
+          <h3>1. Initialize Editor</h3>
+          <button id="btn-init" class="btn btn-primary">
+            <span class="btn-icon">🚀</span>
+            Initialize Plugin
+          </button>
+          <button id="btn-destroy" class="btn btn-danger" disabled>
+            <span class="btn-icon">🗑️</span>
+            Destroy Plugin
+          </button>
+        </div>
+
+        <!-- Template Operations -->
+        <div class="control-section">
+          <h3>2. Template Operations</h3>
+          <button id="btn-get-html" class="btn btn-secondary" disabled>
+            <span class="btn-icon">📄</span>
+            Get HTML/CSS
+          </button>
+          <button id="btn-set-html" class="btn btn-secondary" disabled>
+            <span class="btn-icon">📝</span>
+            Set Sample HTML
+          </button>
+          <button id="btn-save" class="btn btn-success" disabled>
+            <span class="btn-icon">💾</span>
+            Save Template
+          </button>
+        </div>
+
+        <!-- Export Operations -->
+        <div class="control-section">
+          <h3>3. Export Template</h3>
+          <button id="btn-export-html" class="btn btn-secondary" disabled>
+            <span class="btn-icon">📦</span>
+            Export HTML
+          </button>
+          <button id="btn-export-zip" class="btn btn-secondary" disabled>
+            <span class="btn-icon">🗜️</span>
+            Export ZIP
+          </button>
+          <button id="btn-export-pdf" class="btn btn-secondary" disabled>
+            <span class="btn-icon">📑</span>
+            Export PDF
+          </button>
+        </div>
+
+        <!-- Status Check -->
+        <div class="control-section">
+          <h3>4. Status Check</h3>
+          <button id="btn-check-status" class="btn btn-info">
+            <span class="btn-icon">ℹ️</span>
+            Check Initialization Status
+          </button>
+        </div>
+      </div>
+
+      <!-- Editor Container -->
+      <div class="editor-container">
+        <h2>Email Editor</h2>
+        <div id="min8t-plugin" class="editor-wrapper">
+          <div class="editor-placeholder">
+            <p>Click "Initialize Plugin" to load the editor</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Output Display -->
+      <div id="output-panel" class="output-panel hidden">
+        <h2>Output</h2>
+        <button id="btn-close-output" class="btn-close">×</button>
+        <pre id="output-content" class="output-content"></pre>
+      </div>
+
+      <!-- Loading Overlay -->
+      <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="spinner"></div>
+        <p id="loading-message">Loading...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>min8t Plugin SDK v1.0.0 | <a href="https://github.com/ardas/min8t-plugin-samples" target="_blank">GitHub Samples</a></p>
+    </div>
+  </footer>
+
+  <!-- Load min8t Plugin SDK (UMD Bundle) -->
+  <script src="../../dist/min8t.js"></script>
+
+  <!-- Application JavaScript -->
+  <script>
+    /**
+     * min8t Plugin SDK - Vanilla JavaScript Integration
+     *
+     * This example demonstrates complete integration of the min8t plugin
+     * using modern vanilla JavaScript (ES6+) without any framework dependencies.
+     *
+     * Features:
+     * - UMD module loading via window.min8t
+     * - Async/await error handling
+     * - DOM manipulation best practices
+     * - Modern Fetch API usage
+     * - Comprehensive status display
+     *
+     * @author min8t Team
+     * @version 1.0.0
+     */
+
+    // ========================================
+    // CONFIGURATION
+    // ========================================
+
+    const CONFIG = {
+      pluginId: 'min8t_pk_demo_plugin',
+      apiRequestData: {
+        emailId: 'demo-email-123'
+      },
+      getAuthToken: () => {
+        // In production, fetch from your authentication system
+        return 'ES-PLUGIN-AUTH-TOKEN-DEMO-12345';
+      },
+      locale: 'en',
+      theme: 'light',
+      baseUrl: 'http://localhost:3009', // Development: Use localhost; Production: https://plugins.min8t.com
+      customization: {
+        branding: true,
+        logoUrl: null,
+        primaryColor: '#007bff',
+        features: ['editor', 'preview', 'export']
+      }
+    };
+
+    // ========================================
+    // DOM ELEMENT REFERENCES (Cached for Performance)
+    // ========================================
+
+    // Cache DOM elements to avoid repeated queries
+    const elements = {
+      // Buttons
+      btnInit: null,
+      btnDestroy: null,
+      btnGetHtml: null,
+      btnSetHtml: null,
+      btnSave: null,
+      btnExportHtml: null,
+      btnExportZip: null,
+      btnExportPdf: null,
+      btnCheckStatus: null,
+      btnCloseOutput: null,
+
+      // Display areas
+      status: null,
+      statusIcon: null,
+      statusMessage: null,
+      outputPanel: null,
+      outputContent: null,
+      loadingOverlay: null,
+      loadingMessage: null,
+      editorContainer: null
+    };
+
+    // ========================================
+    // INITIALIZATION
+    // ========================================
+
+    /**
+     * Initialize the application when DOM is ready
+     * Uses modern DOMContentLoaded event
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('[min8t Demo] DOM loaded, initializing application...');
+
+      // Cache all DOM elements
+      cacheElements();
+
+      // Attach event listeners
+      attachEventListeners();
+
+      // Verify plugin SDK is loaded
+      verifyPluginLoaded();
+
+      console.log('[min8t Demo] Application initialized successfully');
+    });
+
+    /**
+     * Cache all DOM element references
+     * Performance: Single query per element, stored for reuse
+     */
+    function cacheElements() {
+      // Buttons
+      elements.btnInit = document.getElementById('btn-init');
+      elements.btnDestroy = document.getElementById('btn-destroy');
+      elements.btnGetHtml = document.getElementById('btn-get-html');
+      elements.btnSetHtml = document.getElementById('btn-set-html');
+      elements.btnSave = document.getElementById('btn-save');
+      elements.btnExportHtml = document.getElementById('btn-export-html');
+      elements.btnExportZip = document.getElementById('btn-export-zip');
+      elements.btnExportPdf = document.getElementById('btn-export-pdf');
+      elements.btnCheckStatus = document.getElementById('btn-check-status');
+      elements.btnCloseOutput = document.getElementById('btn-close-output');
+
+      // Display areas
+      elements.status = document.getElementById('status');
+      elements.statusIcon = document.getElementById('status-icon');
+      elements.statusMessage = document.getElementById('status-message');
+      elements.outputPanel = document.getElementById('output-panel');
+      elements.outputContent = document.getElementById('output-content');
+      elements.loadingOverlay = document.getElementById('loading-overlay');
+      elements.loadingMessage = document.getElementById('loading-message');
+      elements.editorContainer = document.getElementById('min8t-plugin');
+    }
+
+    /**
+     * Attach event listeners to all interactive elements
+     */
+    function attachEventListeners() {
+      // Initialization
+      elements.btnInit.addEventListener('click', handleInitialize);
+      elements.btnDestroy.addEventListener('click', handleDestroy);
+
+      // Template operations
+      elements.btnGetHtml.addEventListener('click', handleGetHtml);
+      elements.btnSetHtml.addEventListener('click', handleSetHtml);
+      elements.btnSave.addEventListener('click', handleSave);
+
+      // Export operations
+      elements.btnExportHtml.addEventListener('click', () => handleExport('html'));
+      elements.btnExportZip.addEventListener('click', () => handleExport('zip'));
+      elements.btnExportPdf.addEventListener('click', () => handleExport('pdf'));
+
+      // Status check
+      elements.btnCheckStatus.addEventListener('click', handleCheckStatus);
+
+      // Output panel
+      elements.btnCloseOutput.addEventListener('click', hideOutput);
+    }
+
+    /**
+     * Verify that the min8t plugin SDK is loaded
+     * UMD modules are accessible via window global object
+     */
+    function verifyPluginLoaded() {
+      if (typeof window.min8t === 'undefined') {
+        showStatus('error', 'Plugin SDK not loaded. Check that min8t.js is included.');
+        console.error('[min8t Demo] Plugin SDK not found on window.min8t');
+      } else {
+        showStatus('info', 'Plugin SDK loaded successfully. Click "Initialize Plugin" to start.');
+        console.log('[min8t Demo] Plugin SDK available:', window.min8t);
+      }
+    }
+
+    // ========================================
+    // EVENT HANDLERS
+    // ========================================
+
+    /**
+     * Handle plugin initialization
+     * Demonstrates: async/await, try/catch error handling
+     */
+    async function handleInitialize() {
+      console.log('[min8t Demo] Initializing plugin...');
+      showLoading('Initializing plugin...');
+
+      try {
+        // Call window.min8t.init() with configuration
+        await window.min8t.init(CONFIG);
+
+        // Success
+        showStatus('success', 'Plugin initialized successfully!');
+        console.log('[min8t Demo] Plugin initialized');
+
+        // Enable operation buttons
+        enableOperationButtons();
+
+        // Disable init button, enable destroy button
+        elements.btnInit.disabled = true;
+        elements.btnDestroy.disabled = false;
+
+      } catch (error) {
+        // Error handling with user-friendly message
+        console.error('[min8t Demo] Initialization failed:', error);
+        showStatus('error', `Initialization failed: ${error.message}`);
+
+        // Show detailed error in output panel
+        showOutput({
+          error: error.message,
+          stack: error.stack,
+          type: error.errorType || 'unknown',
+          recoverable: error.isRecoverable !== undefined ? error.isRecoverable : true
+        });
+      } finally {
+        hideLoading();
+      }
+    }
+
+    /**
+     * Handle plugin destruction
+     * Demonstrates: cleanup and state reset
+     */
+    function handleDestroy() {
+      console.log('[min8t Demo] Destroying plugin...');
+
+      try {
+        // Call window.min8t.destroy() to clean up resources
+        window.min8t.destroy();
+
+        showStatus('info', 'Plugin destroyed. Click "Initialize Plugin" to reload.');
+        console.log('[min8t Demo] Plugin destroyed');
+
+        // Reset button states
+        disableOperationButtons();
+        elements.btnInit.disabled = false;
+        elements.btnDestroy.disabled = true;
+
+      } catch (error) {
+        console.error('[min8t Demo] Destroy failed:', error);
+        showStatus('error', `Destroy failed: ${error.message}`);
+      }
+    }
+
+    /**
+     * Handle getting HTML/CSS from editor
+     * Demonstrates: async/await, JSON display
+     */
+    async function handleGetHtml() {
+      console.log('[min8t Demo] Getting HTML/CSS...');
+      showLoading('Retrieving template data...');
+
+      try {
+        // Call window.min8t.getHtml() to retrieve current content
+        const result = await window.min8t.getHtml();
+
+        console.log('[min8t Demo] Got HTML/CSS:', result);
+        showStatus('success', 'Retrieved HTML/CSS successfully!');
+
+        // Display in output panel
+        showOutput({
+          html: result.html.substring(0, 500) + '...', // Show first 500 chars
+          css: result.css.substring(0, 500) + '...',
+          htmlLength: result.html.length,
+          cssLength: result.css.length
+        });
+
+      } catch (error) {
+        console.error('[min8t Demo] Get HTML failed:', error);
+        showStatus('error', `Get HTML failed: ${error.message}`);
+        showOutput({ error: error.message });
+      } finally {
+        hideLoading();
+      }
+    }
+
+    /**
+     * Handle setting HTML/CSS in editor
+     * Demonstrates: setHtml() method usage
+     */
+    async function handleSetHtml() {
+      console.log('[min8t Demo] Setting sample HTML...');
+      showLoading('Setting template data...');
+
+      // Sample HTML template
+      const sampleHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Sample Email</title>
+</head>
+<body>
+  <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+    <h1>Welcome to min8t!</h1>
+    <p>This is a sample email template loaded via vanilla JavaScript.</p>
+    <a href="#" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+      Click Here
+    </a>
+  </div>
+</body>
+</html>
+      `.trim();
+
+      const sampleCss = `
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  color: #333;
+}
+h1 {
+  color: #007bff;
+}
+      `.trim();
+
+      try {
+        // Call window.min8t.setHtml() to set content
+        await window.min8t.setHtml(sampleHtml, sampleCss);
+
+        console.log('[min8t Demo] Set HTML/CSS successfully');
+        showStatus('success', 'Sample HTML/CSS loaded into editor!');
+
+      } catch (error) {
+        console.error('[min8t Demo] Set HTML failed:', error);
+        showStatus('error', `Set HTML failed: ${error.message}`);
+        showOutput({ error: error.message });
+      } finally {
+        hideLoading();
+      }
+    }
+
+    /**
+     * Handle saving template
+     * Demonstrates: save() method with backend integration
+     */
+    async function handleSave() {
+      console.log('[min8t Demo] Saving template...');
+      showLoading('Saving template to backend...');
+
+      try {
+        // Call window.min8t.save() to persist to backend
+        const result = await window.min8t.save();
+
+        console.log('[min8t Demo] Save successful:', result);
+        showStatus('success', `Template saved successfully! Email ID: ${result.emailId}`);
+
+        // Display save response
+        showOutput({
+          success: result.success,
+          emailId: result.emailId,
+          savedAt: result.savedAt
+        });
+
+      } catch (error) {
+        console.error('[min8t Demo] Save failed:', error);
+        showStatus('error', `Save failed: ${error.message}`);
+        showOutput({
+          error: error.message,
+          errorType: error.errorType,
+          isRecoverable: error.isRecoverable
+        });
+      } finally {
+        hideLoading();
+      }
+    }
+
+    /**
+     * Handle template export
+     * Demonstrates: export() method with format selection
+     *
+     * @param {string} format - Export format ('html', 'zip', 'pdf')
+     */
+    async function handleExport(format) {
+      console.log(`[min8t Demo] Exporting as ${format.toUpperCase()}...`);
+      showLoading(`Exporting template as ${format.toUpperCase()}...`);
+
+      try {
+        // Call window.min8t.export() with format parameter
+        const result = await window.min8t.export(format);
+
+        console.log('[min8t Demo] Export successful:', result);
+        showStatus('success', `Export complete! Download URL available for ${result.expiresIn}s`);
+
+        // Display export response with download link
+        showOutput({
+          downloadUrl: result.downloadUrl,
+          format: result.format,
+          expiresIn: result.expiresIn
+        });
+
+        // Auto-open download URL in new tab
+        if (confirm(`Download ${format.toUpperCase()} file? (Opens in new tab)`)) {
+          window.open(result.downloadUrl, '_blank');
+        }
+
+      } catch (error) {
+        console.error('[min8t Demo] Export failed:', error);
+        showStatus('error', `Export failed: ${error.message}`);
+        showOutput({ error: error.message });
+      } finally {
+        hideLoading();
+      }
+    }
+
+    /**
+     * Handle initialization status check
+     * Demonstrates: isInitialized() method
+     */
+    function handleCheckStatus() {
+      console.log('[min8t Demo] Checking initialization status...');
+
+      // Call window.min8t.isInitialized()
+      const isInitialized = window.min8t.isInitialized();
+
+      console.log('[min8t Demo] Initialized:', isInitialized);
+
+      if (isInitialized) {
+        showStatus('success', 'Plugin is initialized and ready to use.');
+      } else {
+        showStatus('info', 'Plugin is not initialized. Click "Initialize Plugin" first.');
+      }
+
+      showOutput({
+        initialized: isInitialized,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // ========================================
+    // UI HELPER FUNCTIONS
+    // ========================================
+
+    /**
+     * Show status message with icon
+     *
+     * @param {string} type - Status type ('success', 'error', 'info', 'warning')
+     * @param {string} message - Status message to display
+     */
+    function showStatus(type, message) {
+      // Remove all status classes
+      elements.status.className = 'status';
+
+      // Add new status type class
+      elements.status.classList.add(`status-${type}`);
+      elements.status.classList.remove('hidden');
+
+      // Set icon based on type
+      const icons = {
+        success: '✅',
+        error: '❌',
+        info: 'ℹ️',
+        warning: '⚠️'
+      };
+
+      elements.statusIcon.textContent = icons[type] || 'ℹ️';
+      elements.statusMessage.textContent = message;
+
+      console.log(`[min8t Demo] Status (${type}):`, message);
+    }
+
+    /**
+     * Show loading overlay with message
+     *
+     * @param {string} message - Loading message to display
+     */
+    function showLoading(message) {
+      elements.loadingMessage.textContent = message;
+      elements.loadingOverlay.classList.remove('hidden');
+    }
+
+    /**
+     * Hide loading overlay
+     */
+    function hideLoading() {
+      elements.loadingOverlay.classList.add('hidden');
+    }
+
+    /**
+     * Show output panel with formatted JSON
+     *
+     * @param {object} data - Data to display
+     */
+    function showOutput(data) {
+      // Format as pretty JSON with 2-space indentation
+      const formattedJson = JSON.stringify(data, null, 2);
+
+      elements.outputContent.textContent = formattedJson;
+      elements.outputPanel.classList.remove('hidden');
+
+      // Scroll to output panel
+      elements.outputPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    /**
+     * Hide output panel
+     */
+    function hideOutput() {
+      elements.outputPanel.classList.add('hidden');
+    }
+
+    /**
+     * Enable operation buttons after successful initialization
+     */
+    function enableOperationButtons() {
+      elements.btnGetHtml.disabled = false;
+      elements.btnSetHtml.disabled = false;
+      elements.btnSave.disabled = false;
+      elements.btnExportHtml.disabled = false;
+      elements.btnExportZip.disabled = false;
+      elements.btnExportPdf.disabled = false;
+    }
+
+    /**
+     * Disable operation buttons when plugin is destroyed
+     */
+    function disableOperationButtons() {
+      elements.btnGetHtml.disabled = true;
+      elements.btnSetHtml.disabled = true;
+      elements.btnSave.disabled = true;
+      elements.btnExportHtml.disabled = true;
+      elements.btnExportZip.disabled = true;
+      elements.btnExportPdf.disabled = true;
+    }
+
+    // ========================================
+    // GLOBAL ERROR HANDLER
+    // ========================================
+
+    /**
+     * Global error handler for unhandled errors
+     * Best practice: Always handle errors gracefully
+     */
+    window.addEventListener('error', (event) => {
+      console.error('[min8t Demo] Unhandled error:', event.error);
+      showStatus('error', `Unexpected error: ${event.error.message}`);
+    });
+
+    /**
+     * Global handler for unhandled promise rejections
+     * Best practice: Catch all async errors
+     */
+    window.addEventListener('unhandledrejection', (event) => {
+      console.error('[min8t Demo] Unhandled promise rejection:', event.reason);
+      showStatus('error', `Async error: ${event.reason.message || event.reason}`);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+{
+  "name": "@min8t.com/plugin-sdk",
+  "version": "1.0.2",
+  "description": "MiN8T Email Editor SDK - Embed a full-featured email editor in your web application",
+  "main": "dist/min8t.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/min8t.js"
+    }
+  },
+  "files": [
+    "dist/min8t.js",
+    "dist/index.d.ts",
+    "dist/shared/",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "NODE_ENV=production webpack --mode production && tsc --emitDeclarationOnly && node scripts/check-bundle-size.js && node scripts/update-bundle-metadata.js",
+    "build:differential": "NODE_ENV=production webpack --config webpack.config.differential.js --mode production",
+    "build:analyze": "NODE_ENV=production ANALYZE=true webpack --mode production",
+    "build:analyze:differential": "NODE_ENV=production ANALYZE=true webpack --config webpack.config.differential.js --mode production",
+    "dev": "NODE_ENV=development webpack --mode development --watch",
+    "serve": "NODE_ENV=development webpack serve --mode development",
+    "clean": "rm -rf dist/*",
+    "size": "node scripts/check-bundle-size.js",
+    "bundle:report": "node scripts/bundle-report.js",
+    "differential:report": "node scripts/differential-report.js",
+    "test": "jest --verbose",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "min8t",
+    "email-editor",
+    "email",
+    "editor",
+    "plugin",
+    "sdk",
+    "embeddable",
+    "embed",
+    "iframe",
+    "react",
+    "vue",
+    "angular",
+    "umd",
+    "typescript"
+  ],
+  "author": "min8t Team",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/preset-env": "^7.28.5",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.9.1",
+    "babel-loader": "^10.0.0",
+    "compression-webpack-plugin": "^11.0.0",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
+    "terser-webpack-plugin": "^5.3.10",
+    "ts-jest": "^29.4.6",
+    "ts-loader": "^9.5.4",
+    "typescript": "^5.9.3",
+    "webpack": "^5.102.1",
+    "webpack-bundle-analyzer": "^4.10.2",
+    "webpack-cli": "^6.0.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Davison-Francis/min8t-sdks.git",
+    "directory": "min8t-plugin-sdk"
+  },
+  "homepage": "https://github.com/Davison-Francis/min8t-sdks/tree/main/min8t-plugin-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/Davison-Francis/min8t-sdks/issues"
+  },
+  "bundleSize": {
+    "raw": "14.76 KB",
+    "gzipped": "4.14 KB",
+    "brotli": "3.58 KB",
+    "budget": "500.00 KB",
+    "utilization": "2.95%",
+    "compressionRatio": "71.9%",
+    "lastUpdated": "2026-04-22",
+    "limits": {
+      "maxRaw": "500 KB",
+      "maxGzipped": "100 KB",
+      "warning": "400 KB",
+      "error": "500 KB"
+    }
+  }
+}

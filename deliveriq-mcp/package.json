@@ -1,0 +1,55 @@
+{
+  "name": "@deliveriq/mcp",
+  "version": "1.0.3",
+  "description": "MCP server for DeliverIQ email verification API — 12 tools for AI agents",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "deliveriq-mcp-server": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "email-verification",
+    "deliveriq",
+    "ai-agent",
+    "claude",
+    "dnsbl",
+    "email-finder"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Davison-Francis/min8t-sdks.git",
+    "directory": "deliveriq-mcp"
+  },
+  "homepage": "https://github.com/Davison-Francis/min8t-sdks/tree/main/deliveriq-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/Davison-Francis/min8t-sdks/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@deliveriq/sdk": "^1.1.1",
+    "@modelcontextprotocol/sdk": "^1.27.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

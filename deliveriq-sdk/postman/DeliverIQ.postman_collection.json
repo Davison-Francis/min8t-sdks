@@ -1,0 +1,747 @@
+{
+	"info": {
+		"_postman_id": "d1e9f2a0-7b3c-4e5d-8f1a-2c3b4d5e6f7a",
+		"name": "DeliverIQ API",
+		"description": "Complete API collection for DeliverIQ — email verification, domain intelligence, email finder, ESP integration, account management, and tool history.\n\nBase URL: https://api.deliveriq.com/v1\nAuth: MiN8T-Api-Auth header with your API key.\n\nSet the `apiKey` variable in your environment before running requests.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "key",
+				"value": "MiN8T-Api-Auth",
+				"type": "string"
+			},
+			{
+				"key": "value",
+				"value": "{{apiKey}}",
+				"type": "string"
+			},
+			{
+				"key": "in",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// DeliverIQ Collection Pre-request Script",
+					"// Ensures the MiN8T-Api-Auth header is set on every request.",
+					"if (!pm.environment.get('apiKey') && !pm.collectionVariables.get('apiKey')) {",
+					"    console.warn('DeliverIQ: apiKey variable is not set. Requests will fail with 401.');",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://api.deliveriq.com/v1",
+			"type": "string"
+		},
+		{
+			"key": "apiKey",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Verification",
+			"description": "Email verification endpoints — single, batch (JSON), batch (file upload), job status, result download, job cancellation, and job listing.",
+			"item": [
+				{
+					"name": "Single Email Verification",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"john@example.com\",\n\t\"options\": {\n\t\t\"skipSmtp\": false,\n\t\t\"checkGravatar\": true,\n\t\t\"includeIntelligence\": true\n\t}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/verify",
+							"host": ["{{baseUrl}}"],
+							"path": ["verify"]
+						},
+						"description": "Verify a single email address. Returns deliverability verdict, risk score, and optional intelligence data.\n\nOptions:\n- `skipSmtp` (boolean) — Skip SMTP mailbox check\n- `checkGravatar` (boolean) — Check for Gravatar profile\n- `includeIntelligence` (boolean) — Include domain intelligence in response"
+					}
+				},
+				{
+					"name": "Batch Verify (JSON)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"emails\": [\n\t\t\"a@example.com\",\n\t\t\"b@example.com\"\n\t],\n\t\"options\": {\n\t\t\"checkHibp\": true\n\t},\n\t\"callbackUrl\": \"https://your-app.com/webhook\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/verify/batch",
+							"host": ["{{baseUrl}}"],
+							"path": ["verify", "batch"]
+						},
+						"description": "Submit a batch of emails for verification via JSON array. Returns a jobId that can be polled for status.\n\n- `emails` — Array of email addresses\n- `options.checkHibp` — Check Have-I-Been-Pwned breach status\n- `callbackUrl` — Webhook URL to notify on completion"
+					}
+				},
+				{
+					"name": "Batch Verify (File Upload)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "",
+									"description": "CSV or TXT file containing email addresses (one per line or in a column)"
+								},
+								{
+									"key": "skipSmtp",
+									"value": "false",
+									"type": "text",
+									"description": "Skip SMTP mailbox verification"
+								},
+								{
+									"key": "checkGravatar",
+									"value": "true",
+									"type": "text",
+									"description": "Check for Gravatar profiles"
+								},
+								{
+									"key": "checkHibp",
+									"value": "false",
+									"type": "text",
+									"description": "Check Have-I-Been-Pwned breach status"
+								},
+								{
+									"key": "skipIntelligence",
+									"value": "false",
+									"type": "text",
+									"description": "Skip domain intelligence gathering"
+								},
+								{
+									"key": "callbackUrl",
+									"value": "https://your-app.com/webhook",
+									"type": "text",
+									"description": "Webhook URL to notify on job completion"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/verify/upload",
+							"host": ["{{baseUrl}}"],
+							"path": ["verify", "upload"]
+						},
+						"description": "Upload a CSV or TXT file for batch email verification. The file should contain email addresses (one per line, or as a column in CSV). Returns a jobId for tracking."
+					}
+				},
+				{
+					"name": "Get Batch Job Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/verify/batch/:jobId",
+							"host": ["{{baseUrl}}"],
+							"path": ["verify", "batch", ":jobId"],
+							"variable": [
+								{
+									"key": "jobId",
+									"value": "{{jobId}}",
+									"description": "The batch job ID returned from a batch verify request"
+								}
+							]
+						},
+						"description": "Poll the status of a batch verification job. Returns progress percentage, counts by category, and completion status."
+					}
+				},
+				{
+					"name": "Download Batch Results (CSV)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/verify/batch/:jobId/download?category=",
+							"host": ["{{baseUrl}}"],
+							"path": ["verify", "batch", ":jobId", "download"],
+							"query": [
+								{
+									"key": "category",
+									"value": "",
+									"description": "Optional filter: \"safe\", \"risky\", \"invalid\", or \"unknown\". Omit to download all results."
+								}
+							],
+							"variable": [
+								{
+									"key": "jobId",
+									"value": "{{jobId}}",
+									"description": "The batch job ID"
+								}
+							]
+						},
+						"description": "Download the verification results as a CSV file. Optionally filter by category (safe, risky, invalid, unknown)."
+					}
+				},
+				{
+					"name": "Cancel Batch Job",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/verify/batch/:jobId",
+							"host": ["{{baseUrl}}"],
+							"path": ["verify", "batch", ":jobId"],
+							"variable": [
+								{
+									"key": "jobId",
+									"value": "{{jobId}}",
+									"description": "The batch job ID to cancel"
+								}
+							]
+						},
+						"description": "Cancel a running or queued batch verification job. Already-completed results are retained."
+					}
+				},
+				{
+					"name": "List Batch Jobs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/verify/jobs?page=1&limit=20&status=",
+							"host": ["{{baseUrl}}"],
+							"path": ["verify", "jobs"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number (1-based)"
+								},
+								{
+									"key": "limit",
+									"value": "20",
+									"description": "Results per page (max 100)"
+								},
+								{
+									"key": "status",
+									"value": "",
+									"description": "Filter by status: \"pending\", \"processing\", \"completed\", \"failed\", \"cancelled\""
+								}
+							]
+						},
+						"description": "List all batch verification jobs for the account. Supports pagination and status filtering."
+					}
+				}
+			]
+		},
+		{
+			"name": "Domain Intelligence",
+			"description": "Domain analysis tools — blacklist checks (50 DNSBL zones), infrastructure checks (SPF/DKIM/DMARC), spam trap analysis, comprehensive domain intel, organization intel, and background enrichment.",
+			"item": [
+				{
+					"name": "Blacklist Check",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"domain\": \"example.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tools/blacklist-check",
+							"host": ["{{baseUrl}}"],
+							"path": ["tools", "blacklist-check"]
+						},
+						"description": "Check a domain or IP against 50 DNSBL (DNS-based Blackhole List) zones. Returns listed/not-listed status per zone and an overall risk assessment."
+					}
+				},
+				{
+					"name": "Infrastructure Check",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"domain\": \"example.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tools/infrastructure-check",
+							"host": ["{{baseUrl}}"],
+							"path": ["tools", "infrastructure-check"]
+						},
+						"description": "Analyze a domain's email infrastructure: SPF record validation, DKIM selector discovery, and DMARC policy assessment. Returns parsed records and actionable recommendations."
+					}
+				},
+				{
+					"name": "Spam Trap Analysis",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"user@example.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tools/spam-trap-analysis",
+							"host": ["{{baseUrl}}"],
+							"path": ["tools", "spam-trap-analysis"]
+						},
+						"description": "Run 13-signal spam trap detection on an email address. Checks for recycled traps, pristine traps, typo traps, role-based patterns, and more. Returns a probability score and signal breakdown."
+					}
+				},
+				{
+					"name": "Domain Intelligence",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"domain\": \"example.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tools/domain-intel",
+							"host": ["{{baseUrl}}"],
+							"path": ["tools", "domain-intel"]
+						},
+						"description": "Comprehensive domain intelligence report. Combines blacklist status, infrastructure analysis, WHOIS/RDAP data, MX records, and domain age into a single trust score."
+					}
+				},
+				{
+					"name": "Organization Intelligence",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tools/org-intel/:domain",
+							"host": ["{{baseUrl}}"],
+							"path": ["tools", "org-intel", ":domain"],
+							"variable": [
+								{
+									"key": "domain",
+									"value": "example.com",
+									"description": "The domain to look up organization data for"
+								}
+							]
+						},
+						"description": "Get organization intelligence for a domain. Returns company name, industry, size estimate, social profiles, and tech stack when available. This endpoint is free and does not consume credits."
+					}
+				},
+				{
+					"name": "Enrich Domain (Background)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"domain\": \"example.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tools/enrich-domain",
+							"host": ["{{baseUrl}}"],
+							"path": ["tools", "enrich-domain"]
+						},
+						"description": "Trigger background enrichment for a domain. Queues the domain for deep data gathering (WHOIS, RDAP, tech stack, social profiles). Results are cached and available via the Domain Intelligence and Organization Intelligence endpoints. This endpoint is free."
+					}
+				}
+			]
+		},
+		{
+			"name": "Email Finder",
+			"description": "Find business email addresses using first name, last name, and company domain. Supports single and bulk lookups (up to 50 contacts per request).",
+			"item": [
+				{
+					"name": "Find Email",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"John\",\n\t\"lastName\": \"Doe\",\n\t\"domain\": \"acme.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/email-finder/find",
+							"host": ["{{baseUrl}}"],
+							"path": ["email-finder", "find"]
+						},
+						"description": "Find a business email address for a person at a given company domain. Uses pattern generation (P4 smart ranking) with SMTP verification to return the most likely valid email."
+					}
+				},
+				{
+					"name": "Bulk Find Emails",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"contacts\": [\n\t\t{\n\t\t\t\"firstName\": \"John\",\n\t\t\t\"lastName\": \"Doe\",\n\t\t\t\"domain\": \"acme.com\"\n\t\t},\n\t\t{\n\t\t\t\"firstName\": \"Jane\",\n\t\t\t\"lastName\": \"Smith\",\n\t\t\t\"domain\": \"globex.com\"\n\t\t}\n\t]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/email-finder/bulk",
+							"host": ["{{baseUrl}}"],
+							"path": ["email-finder", "bulk"]
+						},
+						"description": "Find business emails for up to 50 contacts in a single request. Each contact requires firstName, lastName, and domain. Returns results in the same order as the input array."
+					}
+				}
+			]
+		},
+		{
+			"name": "ESP Integration",
+			"description": "Connect to Email Service Providers (ESPs), pull subscriber lists, sync and verify them, and push cleaned results back.",
+			"item": [
+				{
+					"name": "List ESP Providers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/esp/providers",
+							"host": ["{{baseUrl}}"],
+							"path": ["esp", "providers"]
+						},
+						"description": "List all ESP providers connected to the account. Returns provider ID, name, connection status, and available capabilities."
+					}
+				},
+				{
+					"name": "Get Provider Lists",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/esp/:providerId/lists",
+							"host": ["{{baseUrl}}"],
+							"path": ["esp", ":providerId", "lists"],
+							"variable": [
+								{
+									"key": "providerId",
+									"value": "mailchimp",
+									"description": "The ESP provider identifier (e.g., \"mailchimp\", \"sendgrid\", \"mailgun\")"
+								}
+							]
+						},
+						"description": "Retrieve subscriber lists from a connected ESP provider. Returns list IDs, names, subscriber counts, and last sync timestamps."
+					}
+				},
+				{
+					"name": "Sync and Verify ESP List",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"providerId\": \"mailchimp\",\n\t\"listId\": \"list_001\",\n\t\"options\": {\n\t\t\"skipSmtp\": false\n\t},\n\t\"callbackUrl\": \"https://your-app.com/webhook\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/esp/sync",
+							"host": ["{{baseUrl}}"],
+							"path": ["esp", "sync"]
+						},
+						"description": "Pull a subscriber list from an ESP and run email verification on all addresses. Creates a batch job that can be tracked via the job status endpoint. Optionally sends a webhook on completion."
+					}
+				},
+				{
+					"name": "Push Results to ESP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"providerId\": \"mailchimp\",\n\t\"listId\": \"list_001\",\n\t\"jobId\": \"550e8400-e29b-41d4-a716-446655440000\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/esp/push-results",
+							"host": ["{{baseUrl}}"],
+							"path": ["esp", "push-results"]
+						},
+						"description": "Push verification results back to the ESP. Tags or removes invalid/risky subscribers based on verification results from a completed job."
+					}
+				}
+			]
+		},
+		{
+			"name": "Account",
+			"description": "Manage API keys, webhook secrets, and view credit usage.",
+			"item": [
+				{
+					"name": "List API Keys",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/account/api-keys",
+							"host": ["{{baseUrl}}"],
+							"path": ["account", "api-keys"]
+						},
+						"description": "List all API keys for the account. Returns key name, prefix (first 8 chars), creation date, and last used timestamp. Full key values are never returned after creation."
+					}
+				},
+				{
+					"name": "Create API Key",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"Production\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/account/api-keys",
+							"host": ["{{baseUrl}}"],
+							"path": ["account", "api-keys"]
+						},
+						"description": "Create a new API key. The full key value is returned ONLY in this response — store it securely. The key name is for your reference only."
+					}
+				},
+				{
+					"name": "Revoke API Key",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/account/api-keys/:keyId",
+							"host": ["{{baseUrl}}"],
+							"path": ["account", "api-keys", ":keyId"],
+							"variable": [
+								{
+									"key": "keyId",
+									"value": "{{keyId}}",
+									"description": "The API key ID to revoke"
+								}
+							]
+						},
+						"description": "Permanently revoke an API key. The key will immediately stop working. This action cannot be undone."
+					}
+				},
+				{
+					"name": "Rotate Webhook Secret",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/account/webhook-secret/rotate",
+							"host": ["{{baseUrl}}"],
+							"path": ["account", "webhook-secret", "rotate"]
+						},
+						"description": "Rotate the webhook signing secret. The new secret is returned in the response. All future webhook payloads will be signed with the new secret. The old secret remains valid for 24 hours to allow migration."
+					}
+				},
+				{
+					"name": "Get Credit Usage",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/account/usage",
+							"host": ["{{baseUrl}}"],
+							"path": ["account", "usage"]
+						},
+						"description": "Get current credit usage for the billing period. Returns total credits, credits used, credits remaining, and a breakdown by endpoint category."
+					}
+				}
+			]
+		},
+		{
+			"name": "Tool History",
+			"description": "Persist and retrieve results from domain intelligence tool lookups. Useful for building audit trails and avoiding redundant checks.",
+			"item": [
+				{
+					"name": "Save Tool History Entry",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"toolType\": \"blacklist\",\n\t\"input\": \"example.com\",\n\t\"result\": {\n\t\t\"listed\": false\n\t}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tools/history",
+							"host": ["{{baseUrl}}"],
+							"path": ["tools", "history"]
+						},
+						"description": "Save a tool lookup result to history. Stores the tool type, input parameters, and full result payload for later retrieval."
+					}
+				},
+				{
+					"name": "Get Tool History",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tools/history/:toolType",
+							"host": ["{{baseUrl}}"],
+							"path": ["tools", "history", ":toolType"],
+							"variable": [
+								{
+									"key": "toolType",
+									"value": "blacklist",
+									"description": "Tool type to retrieve history for (e.g., \"blacklist\", \"infrastructure\", \"spam-trap\", \"domain-intel\")"
+								}
+							]
+						},
+						"description": "Retrieve saved history entries for a specific tool type. Returns entries in reverse chronological order."
+					}
+				},
+				{
+					"name": "Clear Tool History",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tools/history/:toolType",
+							"host": ["{{baseUrl}}"],
+							"path": ["tools", "history", ":toolType"],
+							"variable": [
+								{
+									"key": "toolType",
+									"value": "blacklist",
+									"description": "Tool type to clear history for"
+								}
+							]
+						},
+						"description": "Delete all saved history entries for a specific tool type. This action cannot be undone."
+					}
+				}
+			]
+		}
+	]
+}
