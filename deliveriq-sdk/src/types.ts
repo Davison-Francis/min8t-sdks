@@ -86,8 +86,17 @@ export interface DnsblResult {
 
 export interface DomainAgeResult {
   ageDays: number;
-  registeredDate?: string;
+  /** ISO timestamp from WHOIS — when the domain was first registered. */
+  registrationDate?: string;
+  /** ISO timestamp — when the registration is set to expire. */
+  expirationDate?: string;
+  /** ISO timestamp — last WHOIS change. */
+  lastChangedDate?: string;
   riskLevel: 'new' | 'young' | 'normal' | 'established';
+  registrar?: string;
+  nameservers?: string[];
+  dnssec?: boolean;
+  status?: string[];
 }
 
 export interface SpamTrapClassification {
@@ -347,7 +356,9 @@ export interface SpamTrapAnalysisResponse {
 
 export interface DomainTrust {
   score: number;
-  factors: Record<string, number>;
+  level: 'low' | 'neutral' | 'high';
+  /** Per-factor sub-scores: domainAge, infrastructure, reputation, trustSignals. */
+  breakdown: Record<string, number>;
 }
 
 export interface DomainIntelResponse {

@@ -354,17 +354,19 @@ Credit cost: 1 credit (heavy rate limit: 10 req/min)`,
           '## Domain Age',
           `- Age: ${r.domainAge.ageDays} days (${r.domainAge.riskLevel})`,
         );
-        if (r.domainAge.registeredDate) {
-          lines.push(`- Registered: ${r.domainAge.registeredDate}`);
+        if (r.domainAge.registrationDate) {
+          lines.push(`- Registered: ${r.domainAge.registrationDate}`);
         }
 
         if (r.ispProfile) {
           lines.push('', '## ISP Profile', `- Name: ${r.ispProfile.name}`, `- Category: ${r.ispProfile.category}`);
         }
 
-        if (Object.keys(r.domainTrust.factors).length > 0) {
+        // Route returns trust breakdown under `breakdown` (not `factors`).
+        const breakdown = r.domainTrust.breakdown ?? {};
+        if (Object.keys(breakdown).length > 0) {
           lines.push('', '## Trust Factors');
-          for (const [factor, score] of Object.entries(r.domainTrust.factors)) {
+          for (const [factor, score] of Object.entries(breakdown)) {
             lines.push(`- ${factor}: ${score}`);
           }
         }
