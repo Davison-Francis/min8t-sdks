@@ -1,0 +1,17 @@
+# Sponsorship configuration for Davison-Francis/min8t-sdks
+#
+# Once GitHub Sponsors is enabled on the @Davison-Francis account
+# (Settings → Sponsors → Get Started), the username below will activate
+# a "Sponsor" button on the repository sidebar and open a sponsor page
+# at https://github.com/sponsors/Davison-Francis. Until then, this is
+# a no-op — GitHub silently hides the button if Sponsors is not active.
+#
+# Other supported keys you can add later:
+#   patreon: <username>
+#   open_collective: <handle>
+#   ko_fi: <username>
+#   buy_me_a_coffee: <username>
+#   custom: ['https://min8t.com/sponsor']
+#
+# See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+github: Davison-Francis
