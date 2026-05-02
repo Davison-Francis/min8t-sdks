@@ -1,5 +1,11 @@
 # Min8T SDKs
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![@deliveriq/mcp version](https://img.shields.io/npm/v/@deliveriq/mcp.svg?label=%40deliveriq%2Fmcp)](https://www.npmjs.com/package/@deliveriq/mcp)
+[![@deliveriq/mcp downloads](https://img.shields.io/npm/dm/@deliveriq/mcp.svg?label=downloads)](https://www.npmjs.com/package/@deliveriq/mcp)
+[![@deliveriq/sdk version](https://img.shields.io/npm/v/@deliveriq/sdk.svg?label=%40deliveriq%2Fsdk)](https://www.npmjs.com/package/@deliveriq/sdk)
+[![@min8t.com/plugin-sdk version](https://img.shields.io/npm/v/@min8t.com/plugin-sdk.svg?label=%40min8t.com%2Fplugin-sdk)](https://www.npmjs.com/package/@min8t.com/plugin-sdk)
+[![MCP Registry](https://img.shields.io/badge/MCP%20Registry-active-brightgreen)](https://registry.modelcontextprotocol.io/)
 [![Davison-Francis/min8t-sdks MCP server](https://glama.ai/mcp/servers/Davison-Francis/min8t-sdks/badges/score.svg)](https://glama.ai/mcp/servers/Davison-Francis/min8t-sdks)
 
 Open-source SDKs and MCP server for the [DeliverIQ](https://min8t.com/deliveriq)
