@@ -1,7 +1,8 @@
 {
   "name": "@deliveriq/mcp",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "MCP server for DeliverIQ email verification API — 12 tools for AI agents",
+  "mcpName": "io.github.Davison-Francis/deliveriq-mcp",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
