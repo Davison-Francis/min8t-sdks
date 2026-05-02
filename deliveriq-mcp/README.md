@@ -7,6 +7,7 @@ and any other MCP-compatible client.
 
 [![npm](https://img.shields.io/npm/v/@deliveriq/mcp.svg)](https://www.npmjs.com/package/@deliveriq/mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![Davison-Francis/min8t-sdks MCP server](https://glama.ai/mcp/servers/Davison-Francis/min8t-sdks/badges/score.svg)](https://glama.ai/mcp/servers/Davison-Francis/min8t-sdks)
 
 ## Installation
 

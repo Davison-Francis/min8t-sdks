@@ -1,7 +1,9 @@
 # Min8T SDKs
 
-Open-source SDKs and MCP server for the [DeliverIQ](https://deliveriq.com) email
-verification platform and the [Min8T](https://min8t.com) email editor.
+[![Davison-Francis/min8t-sdks MCP server](https://glama.ai/mcp/servers/Davison-Francis/min8t-sdks/badges/score.svg)](https://glama.ai/mcp/servers/Davison-Francis/min8t-sdks)
+
+Open-source SDKs and MCP server for the [DeliverIQ](https://min8t.com/deliveriq)
+email verification platform and the [Min8T](https://min8t.com) email editor.
 
 This repository hosts three published npm packages:
 
@@ -34,8 +36,8 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 }
 ```
 
-Get an API key at [deliveriq.com](https://deliveriq.com) (free tier
-available). Restart Claude Desktop. Done.
+Get an API key at [min8t.com/deliveriq](https://min8t.com/deliveriq)
+(free tier available). Restart Claude Desktop. Done.
 
 See [`deliveriq-mcp/README.md`](./deliveriq-mcp/README.md) for the full tool
 reference, Cursor + Claude Code configs, and self-hosting notes.
